@@ -83,7 +83,7 @@ async function fetchPricesJupiter(mints) {
 /* ----------------  Mobile Deep-Link  ---------------- */
 async function connectMobile() {
     try {
-        const callbackUrl = '/mwa';   // same-origin to Express callback on Vercel
+        const callbackUrl = '/api/mwa';   // same-origin to Express callback on Vercel
         const mwa = new solanaWalletAdapterMobile.MobileWalletAdapter({
             appIdentity: { name: 'SOL Incinerator' },
             cluster: 'mainnet-beta',
