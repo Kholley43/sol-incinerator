@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direct RPC Test</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #1e293b;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #60a5fa;
+            margin-bottom: 20px;
+        }
+        .success {
+            color: #4ade80;
+        }
+        .error {
+            color: #f87171;
+        }
+        .warning {
+            color: #facc15;
+        }
+        button {
+            background: linear-gradient(90deg, #3a86ff, #00c6ff);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            display: block;
+            margin: 0 auto 20px;
+        }
+        #output {
+            white-space: pre-wrap;
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .progress {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #60a5fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Direct RPC Test</h1>
+        <button id="testButton">Test Wallet</button>
+        <div class="progress" id="progress"></div>
+        <div id="output">Results will appear here...</div>
+    </div>
+
+    <script>
+        document.getElementById('testButton').addEventListener('click', function() {
+            testWallet();
+        });
+
+        function updateProgress(message) {
+            document.getElementById('progress').textContent = message;
+        }
+
+        function log(message, className) {
+            const output = document.getElementById('output');
+            if (output.textContent === 'Results will appear here...') {
+                output.textContent = '';
+            }
+            
+            const line = document.createElement('div');
+            line.textContent = message;
+            if (className) {
+                line.className = className;
+            }
+            output.appendChild(line);
+        }
+
+        async function testWallet() {
+            const output = document.getElementById('output');
+            output.textContent = '';
+            
+            log('Starting direct wallet test...');
+            
+            // Wallet address to test
+            const walletAddress = '36193q8fQ6MoJp6ivRvm7rLQf2gNP3utKzvoB9yjaFYF';
+            
+            // Make a direct fetch to our proxy
+            updateProgress('Testing connection...');
+            
+            try {
+                const response = await fetch('proxy_rpc.php?endpoint=solana', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        id: 1,
+                        method: 'getBlockHeight',
+                        params: []
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.result) {
+                    log(`✅ Connection successful! Block height: ${data.result}`, 'success');
+                    
+                    // Now test getting token accounts
+                    updateProgress('Checking token accounts...');
+                    
+                    const tokenResponse = await fetch('proxy_rpc.php?endpoint=solana', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            jsonrpc: '2.0',
+                            id: 2,
+                            method: 'getProgramAccounts',
+                            params: [
+                                'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+                                {
+                                    encoding: 'jsonParsed',
+                                    filters: [
+                                        { dataSize: 165 },
+                                        { memcmp: { offset: 32, bytes: walletAddress } }
+                                    ]
+                                }
+                            ]
+                        })
+                    });
+                    
+                    const tokenData = await tokenResponse.json();
+                    
+                    if (tokenData.result) {
+                        const accounts = tokenData.result;
+                        log(`✅ Found ${accounts.length} token accounts`, 'success');
+                        
+                        // Check for zero balance accounts
+                        updateProgress('Checking for burnable accounts...');
+                        let burnableCount = 0;
+                        
+                        for (const account of accounts) {
+                            try {
+                                const accountInfo = account.account.data.parsed.info;
+                                const amount = accountInfo.tokenAmount.uiAmount;
+                                
+                                if (amount === 0) {
+                                    burnableCount++;
+                                    log(`🔥 Burnable account: ${account.pubkey} (0 balance)`, 'success');
+                                }
+                            } catch (error) {
+                                console.error('Error parsing account:', error);
+                            }
+                        }
+                        
+                        log(`✅ Found ${burnableCount} burnable accounts out of ${accounts.length} total accounts`, 'success');
+                    } else {
+                        log(`❌ Error getting token accounts: ${JSON.stringify(tokenData.error)}`, 'error');
+                    }
+                } else {
+                    log(`❌ Connection failed: ${JSON.stringify(data.error)}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+            }
+            
+            updateProgress('Test complete');
+        }
+    </script>
+</body>
+</html>

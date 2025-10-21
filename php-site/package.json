@@ -1,0 +1,19 @@
+{
+  "name": "wallet-cleanup-dashboard",
+  "version": "1.0.0",
+  "description": "Single-file dashboard for cleaning 0-balance / dust SPL token accounts",
+  "main": "walletCleanupDashboard.js",
+  "scripts": {
+    "start": "node walletCleanupDashboard.js"
+  },
+  "keywords": ["solana", "wallet", "cleanup", "spl-token"],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@solana/web3.js": "^1.93.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
