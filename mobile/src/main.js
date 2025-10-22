@@ -1,5 +1,8 @@
 import * as solanaWeb3 from '@solana/web3.js';
-import { SolanaMobileWalletAdapter } from '@solana-mobile/wallet-adapter-mobile';
+import {
+  SolanaMobileWalletAdapter,
+  createDefaultAuthorizationResultCache
+} from '@solana-mobile/wallet-adapter-mobile';
 
 window.solanaWeb3                = solanaWeb3;
 window.solanaWalletAdapterMobile = { SolanaMobileWalletAdapter };
@@ -1002,10 +1005,9 @@ async function connectMobile() {
         const mwa = new SolanaMobileWalletAdapter({
             appIdentity: { name: 'SOL Incinerator' },
             cluster: 'mainnet-beta',
-            addressSelector: 'https://solana.com',   // any https origin allowed
+            authorizationResultCache: createDefaultAuthorizationResultCache(),
             callbackUrl: '/api/mwa'
         });
-
         await mwa.connect();                       // <-- this triggers deep-link
         if (!mwa.publicKey) throw new Error('No wallet address returned');
 
