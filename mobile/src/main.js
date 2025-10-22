@@ -1006,9 +1006,11 @@ async function connectMobile() {
             appIdentity: { name: 'SOL Incinerator' },
             cluster: 'mainnet-beta',
             authorizationResultCache: createDefaultAuthorizationResultCache(),
-            callbackUrl: '/api/mwa'
+            // use full HTTPS URL so Phantom can call back
+            callbackUrl: 'https://incinerator-seven.vercel.app/api/mwa'
         });
-        await mwa.connect();                       // <-- this triggers deep-link
+
+        await mwa.connect();                       // deep-link to wallet
         if (!mwa.publicKey) throw new Error('No wallet address returned');
 
         currentWallet  = mwa.publicKey.toString();
