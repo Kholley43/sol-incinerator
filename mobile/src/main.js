@@ -1,8 +1,8 @@
 import * as solanaWeb3 from '@solana/web3.js';
-import {
-  createMobileWalletAdapter,
-  createDefaultAuthorizationResultCache
-} from '@solana-mobile/wallet-adapter-mobile';
+  import {
+      SolanaMobileWalletAdapter,
+      createDefaultAuthorizationResultCache
+  } from '@solana-mobile/wallet-adapter-mobile';
 
 window.solanaWeb3                = solanaWeb3;
 window.solanaWalletAdapterMobile = { SolanaMobileWalletAdapter };
