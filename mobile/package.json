@@ -6,8 +6,10 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@solana-mobile/wallet-adapter-mobile": "latest",
+    "@solana-mobile/wallet-adapter-mobile": "^2.2.5",
     "@solana/web3.js": "^1.73.0"
   },
-  "devDependencies": { "vite": "^5.0.0" }
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
 }
