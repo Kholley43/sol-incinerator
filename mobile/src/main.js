@@ -1002,29 +1002,27 @@ async function fetchPricesJupiter(mints) {
 /* ----------------  Mobile Deep-Link  ---------------- */
 async function connectMobile () {
   try {
-    const mwa = createMobileWalletAdapter({
+    const mwa = new SolanaMobileWalletAdapter({
       appIdentity: { name: 'SOL Incinerator' },
       cluster: 'mainnet-beta',
       authorizationResultCache: createDefaultAuthorizationResultCache(),
       callbackUrl: 'https://incinerator-seven.vercel.app/api/mwa'
     });
 
-    const { accounts } = await mwa.authorize();   // ← factory returns authorize()
-    if (!accounts?.length) throw new Error('No wallet address returned');
+    await mwa.connect();               // opens Phantom
+    if (!mwa.publicKey) throw new Error('No wallet address returned');
 
-    currentWallet  = accounts[0].address;
+    currentWallet  = mwa.publicKey.toString();
     currentAdapter = mwa;
-
     document.getElementById('walletStatus').innerHTML =
-        `<span class="success">✅ Connected: ${currentWallet.slice(0,8)}…${currentWallet.slice(-6)}</span>
-         <button style="margin-left:10px;" class="btn-small" onclick="disconnectWallet()">Disconnect</button>`;
-
+      `<span class="success">✅ Connected: ${currentWallet.slice(0,8)}…${currentWallet.slice(-6)}</span>
+       <button class="btn-small" style="margin-left:10px" onclick="disconnectWallet()">Disconnect</button>`;
     log('✅ Connected via Mobile Wallet', 'success');
     document.getElementById('walletAddress').value = currentWallet;
     await checkWallet();
   } catch (e) {
     if (e.name === 'WalletNotReadyError') {
-      log('❌ Mobile wallet not detected. Open in Safari/Chrome with Phantom or Backpack installed.', 'error');
+      log('❌ No compatible mobile wallet detected. Open the page in Safari/Chrome (not inside another app) and ensure Phantom or Backpack is installed.', 'error');
     } else {
       log('❌ Mobile connect failed: ' + e.message, 'error');
     }
